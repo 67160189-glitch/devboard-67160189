@@ -3,11 +3,21 @@ import PostCard from "./PostCard";
 
 function PostList({ posts, favorites, onToggleFavorite }) {
   const [search, setSearch] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc");
 
   // กรองโพสต์ตาม search
   const filtered = posts.filter((post) =>
-    post.title.toLowerCase().includes(search.toLowerCase()),
+    post.title.toLowerCase().includes(search.toLowerCase())
   );
+
+  
+  const sortedPosts = [...filtered].sort((a, b) => {
+    if (sortOrder === "desc") {
+      return b.id - a.id;
+    } else {
+      return a.id - b.id;
+    }
+  });
 
   return (
     <div>
@@ -20,6 +30,22 @@ function PostList({ posts, favorites, onToggleFavorite }) {
       >
         โพสต์ล่าสุด
       </h2>
+
+    
+      <button
+        onClick={() =>
+          setSortOrder(sortOrder === "desc" ? "asc" : "desc")
+        }
+        style={{
+          marginBottom: "1rem",
+          padding: "0.4rem 1rem",
+          borderRadius: "6px",
+          border: "1px solid #cbd5e0",
+          cursor: "pointer",
+        }}
+      >
+        {sortOrder === "desc" ? "▼ ใหม่สุดก่อน" : "▲ เก่าสุดก่อน"}
+      </button>
 
       {/* Search Input */}
       <input
@@ -39,14 +65,14 @@ function PostList({ posts, favorites, onToggleFavorite }) {
       />
 
       {/* ถ้าไม่พบโพสต์ */}
-      {filtered.length === 0 && (
+      {sortedPosts.length === 0 && (
         <p style={{ color: "#718096", textAlign: "center", padding: "2rem" }}>
           ไม่พบโพสต์ที่ค้นหา
         </p>
       )}
 
-      {/* แสดงรายการโพสต์ */}
-      {filtered.map((post) => (
+      {/* แสดงโพสต์ */}
+      {sortedPosts.map((post) => (
         <PostCard
           key={post.id}
           title={post.title}
