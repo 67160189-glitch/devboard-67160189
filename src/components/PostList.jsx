@@ -1,23 +1,26 @@
-import { useState } from "react";
+import { useState, useMemo } from "react"; // เพิ่ม useMemo เข้ามา
 import PostCard from "./PostCard";
 
 function PostList({ posts, favorites, onToggleFavorite }) {
   const [search, setSearch] = useState("");
   const [sortOrder, setSortOrder] = useState("desc");
 
-  // กรองโพสต์ตาม search
-  const filtered = posts.filter((post) =>
-    post.title.toLowerCase().includes(search.toLowerCase())
-  );
+  // ใช้ useMemo หุ้มการ Filter และ Sort เพื่อประหยัด Memory
+  const sortedPosts = useMemo(() => {
+    // 1. กรองโพสต์ตาม Search
+    const filtered = posts.filter((post) =>
+      post.title.toLowerCase().includes(search.toLowerCase())
+    );
 
-  
-  const sortedPosts = [...filtered].sort((a, b) => {
-    if (sortOrder === "desc") {
-      return b.id - a.id;
-    } else {
-      return a.id - b.id;
-    }
-  });
+    // 2. เรียงลำดับตาม ID
+    return [...filtered].sort((a, b) => {
+      if (sortOrder === "desc") {
+        return b.id - a.id;
+      } else {
+        return a.id - b.id;
+      }
+    });
+  }, [posts, search, sortOrder]); // จะคำนวณใหม่เฉพาะเมื่อ 3 ค่านี้เปลี่ยนเท่านั้น
 
   return (
     <div>
@@ -31,23 +34,21 @@ function PostList({ posts, favorites, onToggleFavorite }) {
         โพสต์ล่าสุด
       </h2>
 
-    
-      <button
-        onClick={() =>
-          setSortOrder(sortOrder === "desc" ? "asc" : "desc")
-        }
-        style={{
-          marginBottom: "1rem",
-          padding: "0.4rem 1rem",
-          borderRadius: "6px",
-          border: "1px solid #cbd5e0",
-          cursor: "pointer",
-        }}
-      >
-        {sortOrder === "desc" ? "▼ ใหม่สุดก่อน" : "▲ เก่าสุดก่อน"}
-      </button>
+      <div style={{ display: "flex", gap: "10px", marginBottom: "1rem" }}>
+        <button
+          onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
+          style={{
+            padding: "0.4rem 1rem",
+            borderRadius: "6px",
+            border: "1px solid #cbd5e0",
+            cursor: "pointer",
+            background: "white"
+          }}
+        >
+          {sortOrder === "desc" ? "▼ ใหม่สุดก่อน" : "▲ เก่าสุดก่อน"}
+        </button>
+      </div>
 
-      {/* Search Input */}
       <input
         type="text"
         placeholder="ค้นหาโพสต์..."
@@ -64,14 +65,12 @@ function PostList({ posts, favorites, onToggleFavorite }) {
         }}
       />
 
-      {/* ถ้าไม่พบโพสต์ */}
       {sortedPosts.length === 0 && (
         <p style={{ color: "#718096", textAlign: "center", padding: "2rem" }}>
           ไม่พบโพสต์ที่ค้นหา
         </p>
       )}
 
-      {/* แสดงโพสต์ */}
       {sortedPosts.map((post) => (
         <PostCard
           key={post.id}
