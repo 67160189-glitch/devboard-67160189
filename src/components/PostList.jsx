@@ -1,26 +1,51 @@
-import { useState, useMemo } from "react"; // เพิ่ม useMemo เข้ามา
+import { useState, useEffect } from "react";
 import PostCard from "./PostCard";
+import LoadingSpinner from "./LoadingSpinner";
 
-function PostList({ posts, favorites, onToggleFavorite }) {
+function PostList({ favorites, onToggleFavorite }) {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
-  const [sortOrder, setSortOrder] = useState("desc");
 
-  // ใช้ useMemo หุ้มการ Filter และ Sort เพื่อประหยัด Memory
-  const sortedPosts = useMemo(() => {
-    // 1. กรองโพสต์ตาม Search
-    const filtered = posts.filter((post) =>
-      post.title.toLowerCase().includes(search.toLowerCase())
-    );
-
-    // 2. เรียงลำดับตาม ID
-    return [...filtered].sort((a, b) => {
-      if (sortOrder === "desc") {
-        return b.id - a.id;
-      } else {
-        return a.id - b.id;
+  useEffect(() => {
+    async function fetchPosts() {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetch("https://jsonplaceholder.typicode.com/posts");
+        if (!res.ok) throw new Error("ดึงข้อมูลไม่สำเร็จ");
+        const data = await res.json();
+        setPosts(data.slice(0, 20)); // เอาแค่ 20 รายการแรก
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
-    });
-  }, [posts, search, sortOrder]); // จะคำนวณใหม่เฉพาะเมื่อ 3 ค่านี้เปลี่ยนเท่านั้น
+    }
+    fetchPosts();
+  }, []); // [] = ทำครั้งเดียวตอน component mount
+
+  const filtered = posts.filter((post) =>
+    post.title.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  if (loading) return <LoadingSpinner />;
+
+  if (error)
+    return (
+      <div
+        style={{
+          padding: "1.5rem",
+          background: "#fff5f5",
+          border: "1px solid #fc8181",
+          borderRadius: "8px",
+          color: "#c53030",
+        }}
+      >
+        เกิดข้อผิดพลาด: {error}
+      </div>
+    );
 
   return (
     <div>
@@ -33,21 +58,6 @@ function PostList({ posts, favorites, onToggleFavorite }) {
       >
         โพสต์ล่าสุด
       </h2>
-
-      <div style={{ display: "flex", gap: "10px", marginBottom: "1rem" }}>
-        <button
-          onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
-          style={{
-            padding: "0.4rem 1rem",
-            borderRadius: "6px",
-            border: "1px solid #cbd5e0",
-            cursor: "pointer",
-            background: "white"
-          }}
-        >
-          {sortOrder === "desc" ? "▼ ใหม่สุดก่อน" : "▲ เก่าสุดก่อน"}
-        </button>
-      </div>
 
       <input
         type="text"
@@ -65,17 +75,16 @@ function PostList({ posts, favorites, onToggleFavorite }) {
         }}
       />
 
-      {sortedPosts.length === 0 && (
+      {filtered.length === 0 && (
         <p style={{ color: "#718096", textAlign: "center", padding: "2rem" }}>
           ไม่พบโพสต์ที่ค้นหา
         </p>
       )}
 
-      {sortedPosts.map((post) => (
+      {filtered.map((post) => (
         <PostCard
           key={post.id}
-          title={post.title}
-          body={post.body}
+          post={post}
           isFavorite={favorites.includes(post.id)}
           onToggleFavorite={() => onToggleFavorite(post.id)}
         />
