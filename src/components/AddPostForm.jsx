@@ -4,17 +4,15 @@ function AddPostForm({ onAddPost }) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
 
-  const maxLength = 100;
-  const titleLength = title.length;
-  const remaining = maxLength - titleLength;
+  const MAX_TITLE = 100;
+  const isLowRemaining = MAX_TITLE - title.length < 10;
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (!title.trim() || !body.trim()) return;
+    if (!title.trim() || !body.trim()) return; // ป้องกันส่งว่าง
 
     onAddPost({ title, body });
-
-    setTitle("");
+    setTitle(""); // เคลียร์ form
     setBody("");
   }
 
@@ -33,32 +31,34 @@ function AddPostForm({ onAddPost }) {
         เพิ่มโพสต์ใหม่
       </h3>
 
-      <input
-        type="text"
-        placeholder="หัวข้อโพสต์"
-        value={title}
-        maxLength={maxLength}
-        onChange={(e) => setTitle(e.target.value)}
-        style={{
-          width: "100%",
-          padding: "0.5rem",
-          marginBottom: "0.25rem",
-          border: "1px solid #cbd5e0",
-          borderRadius: "4px",
-          fontSize: "1rem",
-          boxSizing: "border-box",
-        }}
-      />
-
-      <div
-        style={{
-          textAlign: "right",
-          fontSize: "0.9rem",
-          color: remaining < 10 ? "red" : "#4a5568",
-          marginBottom: "0.5rem",
-        }}
-      >
-        {titleLength} / {maxLength}
+      <div style={{ position: "relative" }}>
+        <input
+          type="text"
+          placeholder="หัวข้อโพสต์"
+          value={title}
+          maxLength={MAX_TITLE}
+          onChange={(e) => setTitle(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "0.5rem",
+            marginBottom: "0.2rem",
+            border: "1px solid #cbd5e0",
+            borderRadius: "4px",
+            fontSize: "1rem",
+            boxSizing: "border-box",
+          }}
+        />
+        {/* ⭐ ตัวนับตัวอักษร real-time */}
+        <div
+          style={{
+            textAlign: "right",
+            fontSize: "0.8rem",
+            color: isLowRemaining ? "#e53e3e" : "#718096",
+            marginBottom: "0.5rem",
+          }}
+        >
+          {title.length}/{MAX_TITLE}
+        </div>
       </div>
 
       <textarea
