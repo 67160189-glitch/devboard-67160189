@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import PostCard from "./PostCard";
 import PostCount from "./PostCount";
 import PostSkeleton from "./PostSkeleton";
+import { useFavorites } from "../context/FavoritesContext";
 
 function PostList() {
   const [posts, setPosts] = useState([]);
@@ -9,6 +10,8 @@ function PostList() {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [sortOrder, setSortOrder] = useState("desc");
+
+  const { favorites, toggleFavorite } = useFavorites();
 
   async function fetchPosts() {
     try {
@@ -75,6 +78,7 @@ function PostList() {
               borderRadius: "4px",
               cursor: loading ? "not-allowed" : "pointer",
               fontSize: "0.85rem",
+              color: "#1e40af",
             }}
           >
             {loading ? "⌛ โหลดอยู่..." : "🔄 โหลดใหม่"}
@@ -120,7 +124,15 @@ function PostList() {
         ) : sortedPosts.length === 0 ? (
           <p style={{ textAlign: "center", color: "#718096" }}>ไม่พบโพสต์</p>
         ) : (
-          sortedPosts.map((post) => <PostCard key={post.id} post={post} />)
+          sortedPosts.map((post) => (
+            // 3. ส่ง Props ไปยัง PostCard เพื่อแสดงผลสถานะหัวใจและให้กดได้
+            <PostCard 
+              key={post.id} 
+              post={post} 
+              isFavorite={favorites.includes(post.id)} 
+              onToggleFavorite={() => toggleFavorite(post.id)} 
+            />
+          ))
         )}
       </div>
     </div>
